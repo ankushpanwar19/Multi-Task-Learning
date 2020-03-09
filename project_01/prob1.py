@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import cv2
 
 import load_data
-import utils
+
 
 
 def discretize_pts(velo_pts, bin_resolution):
