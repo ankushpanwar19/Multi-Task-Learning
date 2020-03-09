@@ -1,3 +1,4 @@
+#%%
 import numpy as np
 import cv2
 import math
@@ -55,14 +56,14 @@ def plot_pts_on_image(velo_pts,cam2_img):
     # Transforming Points to image(pixel) frame from camera co-ordinates 
     # and filtering out the points outside image
     P_mat = data_utils.calib_cam2cam('data/problem_4/calib_cam_to_cam.txt', '02')
-    color = data_utils.depth_color(cam2_pts[2])
     cam2_pts = np.dot(P_mat, cam2_pts)
     cam2_img_pts = cam2_pts/cam2_pts[2]
     cam2_img_pts = cam2_img_pts.astype(int)
     valid_cam2_pts_mask = (cam2_img_pts[0]>=0) & (cam2_img_pts[0]<cam2_img.shape[1]) & (cam2_img_pts[1]>=0) & (cam2_img_pts[1]<cam2_img.shape[0])
     cam2_img_pts = cam2_img_pts[:,valid_cam2_pts_mask]
 
-    # color scheme based on point distance 
+    # color scheme based on point distance
+    color = data_utils.depth_color(cam2_pts[2],max_d=cam2_pts[2].max())
     img = data_utils.print_projection_plt(cam2_img_pts, color[valid_cam2_pts_mask],cam2_img)
     
     cam2_show = plt.imshow(img)
@@ -76,7 +77,12 @@ velo_pts = data_utils.load_from_bin('data/problem_4/velodyne_points/data/0000000
 velocity = data_utils.load_oxts_velocity('data/problem_4/oxts/data/0000000'+img_no+'.txt')
 ang_velocity = data_utils.load_oxts_angular_rate('data/problem_4/oxts/data/0000000'+img_no+'.txt')
 
-u_velo_pts = undistort_velo_pts(velo_pts, velocity, ang_velocity,do_undistort=False)
+u_velo_pts = undistort_velo_pts(velo_pts, velocity, ang_velocity,do_undistort=True)
 plot_pts_on_image(u_velo_pts,cam_img)
 
 
+#Ques
+#1. Color discrepancy
+#2. velo to cam matrix. Is it for cam0 or cam2?
+
+# %%
