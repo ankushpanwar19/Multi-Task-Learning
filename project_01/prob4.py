@@ -7,20 +7,21 @@ import matplotlib.pyplot as plt
 import data_utils
 
 #%%
-def undistort_velo_pts(velo_pts, velocity, ang_velocity):
+def undistort_velo_pts(velo_pts, velocity, ang_velocity, do_undistort=False):
     undistorted_velo_pts = velo_pts
-    velo_pts_new = np.concatenate((velo_pts[:,:2],np.ones((velo_pts.shape[0],1))),axis=1)
-    angles = np.arctan2(velo_pts[:,1],velo_pts[:,0])
-    times_pts = angles/(2*np.pi)*0.1
-    angle_diff = ang_velocity[-1]*times_pts
-    trans_x = velocity[0]*times_pts
-    trans_y = velocity[1]*times_pts
+    if do_undistort:
+        velo_pts_new = np.concatenate((velo_pts[:,:2],np.ones((velo_pts.shape[0],1))),axis=1)
+        angles = np.arctan2(velo_pts[:,1],velo_pts[:,0])
+        times_pts = -1*angles/(2*np.pi)*0.1
+        angle_diff = ang_velocity[-1]*times_pts
+        trans_x = velocity[0]*times_pts
+        trans_y = velocity[1]*times_pts
 
-    for i in range(velo_pts.shape[0]):
-        theta = angle_diff[i]
-        Trans_mat = np.array([[np.cos(theta), -np.sin(theta), trans_x[i]],[np.sin(theta), np.cos(theta), trans_y[i]]])
+        for i in range(velo_pts.shape[0]):
+            theta = angle_diff[i]
+            Trans_mat = np.array([[np.cos(theta), -np.sin(theta), trans_x[i]],[np.sin(theta), np.cos(theta), trans_y[i]]])
 
-        undistorted_velo_pts[i][:2] = np.dot(Trans_mat,velo_pts_new[i])
+            undistorted_velo_pts[i][:2] = np.dot(Trans_mat,velo_pts_new[i])
 
     return undistorted_velo_pts
 
