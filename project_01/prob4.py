@@ -11,7 +11,7 @@ def undistort_velo_pts(velo_pts, velocity, ang_velocity, do_undistort=False):
     point cloud based on angular and translation velocity
     """
     # intialize undistorted 3D points
-    undistorted_velo_pts = velo_pts
+    undistorted_velo_pts = velo_pts.copy()
     if do_undistort:
 
         # velo_pts_new =[x,y,1] since points are only distorted in x,y direction 
@@ -66,20 +66,26 @@ def plot_pts_on_image(velo_pts,cam2_img):
     color = data_utils.depth_color(cam2_pts[2],max_d=cam2_pts[2].max())
     img = data_utils.print_projection_plt(cam2_img_pts, color[valid_cam2_pts_mask],cam2_img)
     
-    cam2_show = plt.imshow(img)
-    plt.show()
-    return None
+    # cam2_show = plt.imshow(img)
+    # plt.show()
+    return img
 
 # input image number in 3 digit format as string    
-img_no='037'
+img_no='320'
 cam_img = cv2.imread('data/problem_4/image_02/data/0000000'+img_no+'.png')
 velo_pts = data_utils.load_from_bin('data/problem_4/velodyne_points/data/0000000'+img_no+'.bin')
 velocity = data_utils.load_oxts_velocity('data/problem_4/oxts/data/0000000'+img_no+'.txt')
 ang_velocity = data_utils.load_oxts_angular_rate('data/problem_4/oxts/data/0000000'+img_no+'.txt')
 
+# d_velo_pts = undistort_velo_pts(velo_pts, velocity, ang_velocity,do_undistort=False)
 u_velo_pts = undistort_velo_pts(velo_pts, velocity, ang_velocity,do_undistort=True)
-plot_pts_on_image(u_velo_pts,cam_img)
 
+im2=plot_pts_on_image(u_velo_pts,cam_img)
+im1=plot_pts_on_image(velo_pts,cam_img)
+f, axarr = plt.subplots(2)
+axarr[0].imshow(im1)
+axarr[1].imshow(im2)
+plt.show()
 
 #Ques
 #1. Color discrepancy
