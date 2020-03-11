@@ -32,6 +32,15 @@ def box_8points_obj_cam0(obj):
     pts_8_cam0=np.array(pts_8)
     return pts_8_cam0
 
+def ry_rot_cam0(obj,pts_8_cam0,rot=True):
+    if rot==True:
+        ry=obj[-1]
+        R_mat=np.array([[math.cos(ry),0,math.sin(ry)],[0,1,0],[-1*math.sin(ry),0,math.cos(ry)]])
+
+        pts_8_cam0=np.dot(R_mat,pts_8_cam0.T)
+        pts_8_cam0=pts_8_cam0.T
+
+    return(pts_8_cam0)
 def img_8points_obj_cam2(pts_8_cam0,P_rec):
     '''
     It takes 3D points of box in cam0 frame and intrinsic projection matrices to Cam 2 and returns image points for the box in cam2 image frame
@@ -69,6 +78,7 @@ def plot_box_img(img,image_pts,color):
     
     return img
 
+#%%
 img=np.uint8(detect_data['image_2'])
 P_rec=detect_data['P_rect_20']
 for i in range(len(detect_data['objects'])):
@@ -77,6 +87,7 @@ for i in range(len(detect_data['objects'])):
     if obj[0] in ['Car','Van','Truck','Pedestrian','Cyclist']:
         print(obj)
         pts_8_cam0=box_8points_obj_cam0(obj)
+        pts_8_cam0=ry_rot_cam0(obj,pts_8_cam0,rot=True)
         image_pts=img_8points_obj_cam2(pts_8_cam0,P_rec)
         img=plot_box_img(img,image_pts,(255,0,0))
 plt.imshow(img)
