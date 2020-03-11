@@ -34,11 +34,14 @@ def box_8points_obj_cam0(obj):
 
 def ry_rot_cam0(obj,pts_8_cam0,rot=True):
     if rot==True:
-        ry=obj[-1]
+        pts_8_cam0 = pts_8_cam0 - np.array([obj[4:7]])
+        ry=1.57+obj[-1]
         R_mat=np.array([[math.cos(ry),0,math.sin(ry)],[0,1,0],[-1*math.sin(ry),0,math.cos(ry)]])
 
         pts_8_cam0=np.dot(R_mat,pts_8_cam0.T)
         pts_8_cam0=pts_8_cam0.T
+
+        pts_8_cam0 = pts_8_cam0 + np.array([obj[4:7]])
 
     return(pts_8_cam0)
 def img_8points_obj_cam2(pts_8_cam0,P_rec):
@@ -79,7 +82,8 @@ def plot_box_img(img,image_pts,color):
     return img
 
 #%%
-img=np.uint8(detect_data['image_2'])
+img_nrt=np.uint8(detect_data['image_2'])
+img_rt=img_nrt.copy()
 P_rec=detect_data['P_rect_20']
 for i in range(len(detect_data['objects'])):
     print(i)
@@ -87,10 +91,22 @@ for i in range(len(detect_data['objects'])):
     if obj[0] in ['Car','Van','Truck','Pedestrian','Cyclist']:
         print(obj)
         pts_8_cam0=box_8points_obj_cam0(obj)
-        pts_8_cam0=ry_rot_cam0(obj,pts_8_cam0,rot=True)
+
+        pts_8_cam0=ry_rot_cam0(obj,pts_8_cam0,rot=False)
+        pts_8_cam0_rt=ry_rot_cam0(obj,pts_8_cam0,rot=True)
+        # pts_8_cam0=ry_rot_cam0(obj,pts_8_cam0,rot=False)
+
+        image_pts_rt=img_8points_obj_cam2(pts_8_cam0_rt,P_rec)
         image_pts=img_8points_obj_cam2(pts_8_cam0,P_rec)
-        img=plot_box_img(img,image_pts,(255,0,0))
-plt.imshow(img)
+
+        img_rt=plot_box_img(img_rt,image_pts_rt,(255,0,0))
+        img_nrt=plot_box_img(img_nrt,image_pts,(255,0,0))
+f, axarr = plt.subplots(2)
+axarr[0].imshow(img_rt)
+axarr[1].imshow(img_nrt)
 plt.show()
+
+# plt.imshow(img_nrt)
+# plt.show()
 
 # %%
