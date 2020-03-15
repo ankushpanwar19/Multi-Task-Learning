@@ -35,7 +35,7 @@ def box_8points_obj_cam0(obj):
 def ry_rot_cam0(obj,pts_8_cam0,rot=True):
     if rot==True:
         pts_8_cam0 = pts_8_cam0 - np.array([obj[4:7]])
-        ry=1.57+obj[-1]
+        ry=np.pi/2+obj[-1]
         R_mat=np.array([[math.cos(ry),0,math.sin(ry)],[0,1,0],[-1*math.sin(ry),0,math.cos(ry)]])
 
         pts_8_cam0=np.dot(R_mat,pts_8_cam0.T)
