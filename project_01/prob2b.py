@@ -1,4 +1,3 @@
-#%%
 import numpy as np
 import cv2
 import math
@@ -7,9 +6,7 @@ import load_data
 
 ## Loading Detection data
 fpath_detect = 'data/detection_data.p'
-fpath_seg = 'data/segmentation_data.p'
 detect_data = load_data.load_data(fpath_detect)
-seg_data = load_data.load_data(fpath_seg)
 
 def box_8points_obj_cam0(obj):
     '''
@@ -81,9 +78,7 @@ def plot_box_img(img,image_pts,color):
     
     return img
 
-#%%
-img_nrt=np.uint8(detect_data['image_2'])
-img_rt=img_nrt.copy()
+img_rt=np.uint8(detect_data['image_2'])
 P_rec=detect_data['P_rect_20']
 for i in range(len(detect_data['objects'])):
     print(i)
@@ -92,21 +87,11 @@ for i in range(len(detect_data['objects'])):
         print(obj)
         pts_8_cam0=box_8points_obj_cam0(obj)
 
-        pts_8_cam0=ry_rot_cam0(obj,pts_8_cam0,rot=False)
         pts_8_cam0_rt=ry_rot_cam0(obj,pts_8_cam0,rot=True)
-        # pts_8_cam0=ry_rot_cam0(obj,pts_8_cam0,rot=False)
 
         image_pts_rt=img_8points_obj_cam2(pts_8_cam0_rt,P_rec)
-        image_pts=img_8points_obj_cam2(pts_8_cam0,P_rec)
 
         img_rt=plot_box_img(img_rt,image_pts_rt,(255,0,0))
-        img_nrt=plot_box_img(img_nrt,image_pts,(255,0,0))
-f, axarr = plt.subplots(2)
-axarr[0].imshow(img_rt)
-axarr[1].imshow(img_nrt)
+
+plt.imshow(img_rt)
 plt.show()
-
-# plt.imshow(img_nrt)
-# plt.show()
-
-# %%
