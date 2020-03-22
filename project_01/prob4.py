@@ -51,6 +51,8 @@ def plot_pts_on_image(velo_pts,cam2_img):
     cam2_pts = np.dot(T_mat,velo_pts)
     pos_pts_mask = cam2_pts[2]>0
     cam2_pts = cam2_pts[:,pos_pts_mask]
+    # cam2_pts = np.concatenate((cam2_pts, np.ones((1,cam2_pts.shape[1]))), axis=0)
+    # print(cam2_pts.shape)
 
     # Transforming Points to image(pixel) frame from camera co-ordinates 
     # and filtering out the points outside image
@@ -68,7 +70,7 @@ def plot_pts_on_image(velo_pts,cam2_img):
     return img
 
 # input image number in 3 digit format as string    
-img_no='320'
+img_no='037'
 cam_img = cv2.imread('data/problem_4/image_02/data/0000000'+img_no+'.png')
 velo_pts = data_utils.load_from_bin('data/problem_4/velodyne_points/data/0000000'+img_no+'.bin')
 velocity = data_utils.load_oxts_velocity('data/problem_4/oxts/data/0000000'+img_no+'.txt')
