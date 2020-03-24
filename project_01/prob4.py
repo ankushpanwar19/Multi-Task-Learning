@@ -70,7 +70,7 @@ def plot_pts_on_image(velo_pts,cam2_img):
     return img
 
 # input image number in 3 digit format as string    
-img_no='320'
+img_no='037'
 cam_img = cv2.imread('data/problem_4/image_02/data/0000000'+img_no+'.png')
 velo_pts = data_utils.load_from_bin('data/problem_4/velodyne_points/data/0000000'+img_no+'.bin')
 velocity = data_utils.load_oxts_velocity('data/problem_4/oxts/data/0000000'+img_no+'.txt')
@@ -85,7 +85,3 @@ axarr[0].imshow(cam_img)
 axarr[1].imshow(im1)
 axarr[2].imshow(im2)
 plt.show()
-
-#Ques
-#1. Color discrepancy
-#2. velo to cam matrix. Is it for cam0 or cam2?
