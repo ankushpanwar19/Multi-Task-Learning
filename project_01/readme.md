@@ -24,9 +24,10 @@ Run the following command
 python prob1.py
 ```
 
-### Reulting Image 
+### Reulting Image
 
-![BEV](./report/images/prob1.png)
+![BEV](./report/images/prob1.png =100x200)
+
 
 ## Probelm 2: Projection onto Image Plane
 
