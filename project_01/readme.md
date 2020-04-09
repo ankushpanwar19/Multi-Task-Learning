@@ -1,6 +1,6 @@
 # Deep Learning for Autonomous Driving Project 2
 
-Directory/File Structure
+## Directory/File Structure:
     .
     ├── data
     |   └── detection_data.p            #Used for Problem 1-3
