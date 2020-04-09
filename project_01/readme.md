@@ -26,8 +26,7 @@ python prob1.py
 
 ### Reulting Image
 
-![BEV](./report/images/prob1.png =100x200)
-
+<img src="./report/images/prob1.png" alt="BEV" height="500">
 
 ## Probelm 2: Projection onto Image Plane
 
