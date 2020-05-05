@@ -149,9 +149,6 @@ dmypy.json
 ### Ignore Datafiles
 data/
 
-### Ignore experiments
-experiments/
-
 ### Ignore submissions
 submissions/
 
