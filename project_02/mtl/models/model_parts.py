@@ -154,11 +154,26 @@ class ASPP(torch.nn.Module):
     def __init__(self, in_channels, out_channels, rates=(3, 6, 9)):
         super().__init__()
         # TODO: Implement ASPP properly instead of the following
-        self.conv_out = ASPPpart(in_channels, out_channels, kernel_size=1, stride=1, padding=0, dilation=1)
+        self.conv1 = ASPPpart(in_channels, out_channels, kernel_size=1, stride=1, padding=0, dilation=1)
+        self.conv2 = ASPPpart(in_channels, out_channels, kernel_size=3, stride=rates[0], padding=0, dilation=1)
+        self.conv3 = ASPPpart(in_channels, out_channels, kernel_size=3, stride=rates[1], padding=0, dilation=1)
+        self.conv4 = ASPPpart(in_channels, out_channels, kernel_size=3, stride=rates[2], padding=0, dilation=1)
+        self.pooling=torch.nn.Sequential(torch.nn.AdaptiveAvgPool2d(1),
+                                        torch.nn.Conv2d(in_channels, out_channels, 1, bias=False),
+                                        torch.nn.BatchNorm2d(out_channels),
+                                        torch.nn.ReLU())
+        self.conv_out=ASPPpart(5*out_channels,out_channels,kernel_size=1, stride=1, padding=0, dilation=1)
+        # self.conv_out = ASPPpart(in_channels, out_channels, kernel_size=1, stride=1, padding=0, dilation=1)
 
     def forward(self, x):
         # TODO: Implement ASPP properly instead of the following
-        out = self.conv_out(x)
+        x1=self.conv1(x)
+        x2=self.conv2(x)
+        x3=self.conv3(x)
+        x4=self.conv4(x)
+        x5=self.pooling(x)
+        x_cat=torch.cat((x1,x2,x3,x4,x5), dim=1)
+        out = self.conv_out(x_cat)
         return out
 
 
