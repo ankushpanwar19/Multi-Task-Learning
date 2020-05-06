@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 
 from mtl.models.model_parts import Encoder, get_encoder_channel_counts, ASPP, DecoderDeeplabV3p
+from mtl.datasets.definitions import *
 
 
 class ModelBranchedArch(torch.nn.Module):
@@ -9,6 +10,8 @@ class ModelBranchedArch(torch.nn.Module):
         super().__init__()
         self.outputs_desc = outputs_desc
         ch_out = sum(outputs_desc.values())
+        ch_out_seg=outputs_desc[MOD_SEMSEG]
+        ch_out_depth=outputs_desc[MOD_DEPTH]
 
         self.encoder = Encoder(
             cfg.model_encoder_name,
@@ -22,8 +25,8 @@ class ModelBranchedArch(torch.nn.Module):
         self.aspp_seg = ASPP(ch_out_encoder_bottleneck, 256,cfg)
         self.aspp_depth = ASPP(ch_out_encoder_bottleneck, 256,cfg)
 
-        self.decoder_seg = DecoderDeeplabV3p(256, ch_out_encoder_4x, ch_out)
-        self.decoder_depth = DecoderDeeplabV3p(256, ch_out_encoder_4x, ch_out)
+        self.decoder_seg = DecoderDeeplabV3p(256, ch_out_encoder_4x, ch_out_seg,cfg)
+        self.decoder_depth = DecoderDeeplabV3p(256, ch_out_encoder_4x, ch_out_depth,cfg)
 
     def forward(self, x):
         input_resolution = (x.shape[2], x.shape[3])
@@ -46,8 +49,11 @@ class ModelBranchedArch(torch.nn.Module):
         predictions_4x_depth, _ = self.decoder_depth(features_task_depth, features[4])
         # predictions_4x, _ = self.decoder(features_tasks, features[4])
 
+        predictions_1x_seg = F.interpolate(predictions_4x_seg, size=input_resolution, mode='bilinear', align_corners=False)
+        predictions_1x_depth = F.interpolate(predictions_4x_depth, size=input_resolution, mode='bilinear', align_corners=False)
         # predictions_1x = F.interpolate(predictions_4x, size=input_resolution, mode='bilinear', align_corners=False)
-
+        
+        out={MOD_SEMSEG:predictions_1x_seg,MOD_DEPTH:predictions_1x_depth}
         # out = {}
         # offset = 0
 

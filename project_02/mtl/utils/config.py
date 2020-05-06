@@ -27,9 +27,10 @@ def command_line_parser():
     )
 
     parser.add_argument(
-        '--log_dir', type=expandpath, required=False, help='Place for artifacts and logs',default="/Users/abhinavaggarwal/Downloads/dlad_project/project_02/.log")
+        '--log_dir', type=expandpath, required=False, help='Place for artifacts and logs',default='/Users/ankushpanwar/Downloads/log_aspp')
+        # default="/Users/abhinavaggarwal/Downloads/dlad_project/project_02/.log")
     parser.add_argument(
-        '--dataset_root', type=expandpath, required=False, help='Path to dataset',default="/Users/abhinavaggarwal/Downloads/dlad_project/project_02/data")
+        '--dataset_root', type=expandpath, required=False, help='Path to dataset',default='/Users/ankushpanwar/Downloads/miniscapes')
 
     parser.add_argument(
         '--prepare_submission', type=str2bool, default=False,
@@ -74,7 +75,7 @@ def command_line_parser():
         '--dataset', type=str, default='miniscapes', choices=['miniscapes'], help='Dataset name')
 
     parser.add_argument(
-        '--model_name', type=str, default='deeplabv3p', choices=['deeplabv3p'], help='CNN architecture')
+        '--model_name', type=str, default='brancharch', choices=['deeplabv3p','brancharch'], help='CNN architecture')
     parser.add_argument(
         '--model_encoder_name', type=str, default='resnet34', choices=['resnet34'], help='CNN architecture encoder')
 
