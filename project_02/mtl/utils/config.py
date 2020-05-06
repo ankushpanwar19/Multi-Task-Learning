@@ -27,9 +27,9 @@ def command_line_parser():
     )
 
     parser.add_argument(
-        '--log_dir', type=expandpath, required=False, help='Place for artifacts and logs',default="/Users/ankushpanwar/Downloads/log_aspp")
+        '--log_dir', type=expandpath, required=False, help='Place for artifacts and logs',default="/Users/abhinavaggarwal/Downloads/dlad_project/project_02/.log")
     parser.add_argument(
-        '--dataset_root', type=expandpath, required=False, help='Path to dataset',default="/Users/ankushpanwar/Downloads/miniscapes")
+        '--dataset_root', type=expandpath, required=False, help='Path to dataset',default="/Users/abhinavaggarwal/Downloads/dlad_project/project_02/data")
 
     parser.add_argument(
         '--prepare_submission', type=str2bool, default=False,
@@ -116,7 +116,10 @@ def command_line_parser():
         '--log_to_console', type=str2bool, default=True, help='Disables progress bar')
     
     parser.add_argument(
-        '--aspp_add', type=str2bool, default=False, help='Apply ASPP module')
+        '--aspp_add', type=str2bool, default=True, help='Apply ASPP module')
+
+    parser.add_argument(
+        '--skip_add', type=str2bool, default=False, help='Add skip connection')
 
     parser.add_argument(
         '--message', type=str, default='', help='Add experiment description here')

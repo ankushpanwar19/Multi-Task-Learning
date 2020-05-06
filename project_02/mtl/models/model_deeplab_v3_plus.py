@@ -21,7 +21,7 @@ class ModelDeepLabV3Plus(torch.nn.Module):
 
         self.aspp = ASPP(ch_out_encoder_bottleneck, 256,cfg)
 
-        self.decoder = DecoderDeeplabV3p(256, ch_out_encoder_4x, ch_out)
+        self.decoder = DecoderDeeplabV3p(256, ch_out_encoder_4x, ch_out, cfg)
 
     def forward(self, x):
         input_resolution = (x.shape[2], x.shape[3])

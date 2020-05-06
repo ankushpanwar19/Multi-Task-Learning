@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 import torch.nn.functional as F
 import torchvision.models.resnet as resnet
 
@@ -119,11 +120,27 @@ class Encoder(torch.nn.Module):
 
 
 class DecoderDeeplabV3p(torch.nn.Module):
-    def __init__(self, bottleneck_ch, skip_4x_ch, num_out_ch):
+    def __init__(self, bottleneck_ch, skip_4x_ch, num_out_ch, cfg):
         super(DecoderDeeplabV3p, self).__init__()
 
         # TODO: Implement a proper decoder with skip connections instead of the following
-        self.features_to_predictions = torch.nn.Conv2d(bottleneck_ch, num_out_ch, kernel_size=1, stride=1)
+
+        ## 48 from paper code
+        self.skip_add = cfg.skip_add
+
+        if self.skip_add:
+            self.skip_layer = nn.Sequential(nn.Conv2d(skip_4x_ch, 48, 1, bias=False),
+                                            nn.BatchNorm2d(48),
+                                            nn.ReLU())
+            self.last_conv = nn.Sequential(nn.Conv2d(bottleneck_ch+48, 256, kernel_size=3, stride=1, padding=1, bias=False),
+                                        nn.BatchNorm2d(256),
+                                        nn.ReLU(),
+                                        #    nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1, bias=False),
+                                        #    nn.BatchNorm2d(256),
+                                        #    nn.ReLU(),
+                                        #    nn.Conv2d(256, num_out_ch, kernel_size=1, stride=1)
+                                        )
+        self.features_to_predictions = torch.nn.Conv2d(256, num_out_ch, kernel_size=1, stride=1)
 
     def forward(self, features_bottleneck, features_skip_4x):
         """
@@ -137,8 +154,16 @@ class DecoderDeeplabV3p(torch.nn.Module):
         features_4x = F.interpolate(
             features_bottleneck, size=features_skip_4x.shape[2:], mode='bilinear', align_corners=False
         )
-        predictions_4x = self.features_to_predictions(features_4x)
-        return predictions_4x, features_4x
+
+        if self.skip_add:
+            x = self.skip_layer(features_skip_4x)
+            x = torch.cat((x, features_4x), dim=1)
+            x = self.last_conv(x)
+            predictions_4x = self.features_to_predictions(x)
+            return predictions_4x, x
+        else:
+            predictions_4x = self.features_to_predictions(features_4x)
+            return predictions_4x, features_4x
 
 
 class ASPPpart(torch.nn.Sequential):
