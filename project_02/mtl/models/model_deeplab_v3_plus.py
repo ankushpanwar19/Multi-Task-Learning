@@ -19,7 +19,7 @@ class ModelDeepLabV3Plus(torch.nn.Module):
 
         ch_out_encoder_bottleneck, ch_out_encoder_4x = get_encoder_channel_counts(cfg.model_encoder_name)
 
-        self.aspp = ASPP(ch_out_encoder_bottleneck, 256)
+        self.aspp = ASPP(ch_out_encoder_bottleneck, 256,cfg)
 
         self.decoder = DecoderDeeplabV3p(256, ch_out_encoder_4x, ch_out)
 

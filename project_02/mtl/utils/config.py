@@ -27,9 +27,9 @@ def command_line_parser():
     )
 
     parser.add_argument(
-        '--log_dir', type=expandpath, required=True, help='Place for artifacts and logs')
+        '--log_dir', type=expandpath, required=False, help='Place for artifacts and logs',default="/Users/ankushpanwar/Downloads/log_aspp")
     parser.add_argument(
-        '--dataset_root', type=expandpath, required=True, help='Path to dataset')
+        '--dataset_root', type=expandpath, required=False, help='Path to dataset',default="/Users/ankushpanwar/Downloads/miniscapes")
 
     parser.add_argument(
         '--prepare_submission', type=str2bool, default=False,
@@ -114,6 +114,12 @@ def command_line_parser():
 
     parser.add_argument(
         '--log_to_console', type=str2bool, default=True, help='Disables progress bar')
+    
+    parser.add_argument(
+        '--aspp_add', type=str2bool, default=False, help='Apply ASPP module')
+
+    parser.add_argument(
+        '--message', type=str, default='', help='Add experiment description here')
 
     cfg = parser.parse_args()
 
@@ -140,4 +146,6 @@ EXPERIMENT_INVARIANT_KEYS = (
     'ngrok_daemon_start',
     'ngrok_auth_token',
     'log_to_console',
+    'aspp_add',
+    'message'
 )

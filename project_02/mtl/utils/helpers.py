@@ -1,3 +1,7 @@
+import os
+import json
+from datetime import datetime
+
 from torch.optim import SGD, Adam
 from torch.optim.lr_scheduler import LambdaLR
 
@@ -43,3 +47,17 @@ def resolve_lr_scheduler(cfg, optimizer):
         )
     else:
         raise NotImplementedError
+
+
+def create_experiment_name(cfg):
+    dtime = datetime.now().strftime("%y-%m-%d:%H-%M-%S")
+    exp_name = f'{dtime}_b{cfg.batch_size}_lr{cfg.optimizer_lr}_{cfg.message}'
+
+    # return exp_name
+    cfg.log_dir = os.path.join(cfg.log_dir, exp_name)
+    return cfg
+
+def save_config(cfg):
+    with open(os.path.join(cfg.log_dir, 'config.json'), 'w') as json_file:
+        cfg_dict = json.dumps(cfg.__dict__, indent=4, sort_keys=True)
+        json.dump(cfg_dict, json_file)
