@@ -120,13 +120,14 @@ class Encoder(torch.nn.Module):
 
 
 class DecoderDeeplabV3p(torch.nn.Module):
-    def __init__(self, bottleneck_ch, skip_4x_ch, num_out_ch, cfg):
+    def __init__(self, bottleneck_ch, skip_4x_ch, num_out_ch, cfg, upsample=True):
         super(DecoderDeeplabV3p, self).__init__()
 
         # TODO: Implement a proper decoder with skip connections instead of the following
 
         ## 48 from paper code
         self.skip_add = cfg.skip_add
+        self.upsample = upsample
 
         if self.skip_add:
             self.skip_layer = nn.Sequential(nn.Conv2d(skip_4x_ch, 48, 1, bias=False),
@@ -151,9 +152,12 @@ class DecoderDeeplabV3p(torch.nn.Module):
         """
         # TODO: Implement a proper decoder with skip connections instead of the following; keep returned
         #       tensors in the same order and of the same shape.
-        features_4x = F.interpolate(
-            features_bottleneck, size=features_skip_4x.shape[2:], mode='bilinear', align_corners=False
-        )
+        if self.upsample:
+            features_4x = F.interpolate(
+                features_bottleneck, size=features_skip_4x.shape[2:], mode='bilinear', align_corners=False
+            )
+        else:
+            features_4x = features_bottleneck
 
         if self.skip_add:
             x = self.skip_layer(features_skip_4x)

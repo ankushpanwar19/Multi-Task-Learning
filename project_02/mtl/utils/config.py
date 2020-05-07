@@ -27,10 +27,10 @@ def command_line_parser():
     )
 
     parser.add_argument(
-        '--log_dir', type=expandpath, required=False, help='Place for artifacts and logs',default='/Users/ankushpanwar/Downloads/log_aspp')
+        '--log_dir', type=expandpath, required=False, help='Place for artifacts and logs',default='/Users/abhinavaggarwal/Downloads/dlad_project/project_02/.log')
         # default="/Users/abhinavaggarwal/Downloads/dlad_project/project_02/.log")
     parser.add_argument(
-        '--dataset_root', type=expandpath, required=False, help='Path to dataset',default='/Users/ankushpanwar/Downloads/miniscapes')
+        '--dataset_root', type=expandpath, required=False, help='Path to dataset',default='/Users/abhinavaggarwal/Downloads/dlad_project/project_02/data')
 
     parser.add_argument(
         '--prepare_submission', type=str2bool, default=False,
@@ -75,7 +75,11 @@ def command_line_parser():
         '--dataset', type=str, default='miniscapes', choices=['miniscapes'], help='Dataset name')
 
     parser.add_argument(
+<<<<<<< HEAD
         '--model_name', type=str, default='deeplabv3p', choices=['deeplabv3p','brancharch'], help='CNN architecture')
+=======
+        '--model_name', type=str, default='deeplabv3p', choices=['deeplabv3p', 'brancharch', 'taskdistill'], help='CNN architecture')
+>>>>>>> task_distill
     parser.add_argument(
         '--model_encoder_name', type=str, default='resnet34', choices=['resnet34'], help='CNN architecture encoder')
 
@@ -151,5 +155,6 @@ EXPERIMENT_INVARIANT_KEYS = (
     'ngrok_auth_token',
     'log_to_console',
     'aspp_add',
+    'skip_add'
     'message'
 )
