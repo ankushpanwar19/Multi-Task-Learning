@@ -75,11 +75,7 @@ def command_line_parser():
         '--dataset', type=str, default='miniscapes', choices=['miniscapes'], help='Dataset name')
 
     parser.add_argument(
-<<<<<<< HEAD
-        '--model_name', type=str, default='deeplabv3p', choices=['deeplabv3p','brancharch'], help='CNN architecture')
-=======
         '--model_name', type=str, default='deeplabv3p', choices=['deeplabv3p', 'brancharch', 'taskdistill'], help='CNN architecture')
->>>>>>> task_distill
     parser.add_argument(
         '--model_encoder_name', type=str, default='resnet34', choices=['resnet34'], help='CNN architecture encoder')
 
