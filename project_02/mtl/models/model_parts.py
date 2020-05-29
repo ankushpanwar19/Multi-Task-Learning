@@ -136,10 +136,6 @@ class DecoderDeeplabV3p(torch.nn.Module):
             self.last_conv = nn.Sequential(nn.Conv2d(bottleneck_ch+48, 256, kernel_size=3, stride=1, padding=1, bias=False),
                                         nn.BatchNorm2d(256),
                                         nn.ReLU(),
-                                        #    nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1, bias=False),
-                                        #    nn.BatchNorm2d(256),
-                                        #    nn.ReLU(),
-                                        #    nn.Conv2d(256, num_out_ch, kernel_size=1, stride=1)
                                         )
         self.features_to_predictions = torch.nn.Conv2d(256, num_out_ch, kernel_size=1, stride=1)
 
@@ -168,6 +164,88 @@ class DecoderDeeplabV3p(torch.nn.Module):
         else:
             predictions_4x = self.features_to_predictions(features_4x)
             return predictions_4x, features_4x
+
+
+class DecoderDeeplabV3pAllConnect(torch.nn.Module):
+    def __init__(self, bottleneck_ch, skip_2x_ch, skip_4x_ch, skip_8x_ch, num_out_ch, cfg, upsample=True):
+        super(DecoderDeeplabV3pAllConnect, self).__init__()
+
+        # TODO: Implement a proper decoder with skip connections instead of the following
+
+        ## 48 from paper code
+        self.skip_add = cfg.skip_add
+        self.upsample = upsample
+
+        if self.skip_add:
+            self.skip_layer_8x = nn.Sequential(nn.Conv2d(skip_8x_ch, 48, 1, bias=False),
+                                            nn.BatchNorm2d(48),
+                                            nn.ReLU())
+            self.skip_layer_4x = nn.Sequential(nn.Conv2d(skip_4x_ch, 48, 1, bias=False),
+                                            nn.BatchNorm2d(48),
+                                            nn.ReLU())
+            self.skip_layer_2x = nn.Sequential(nn.Conv2d(skip_2x_ch, 48, 1, bias=False),
+                                            nn.BatchNorm2d(48),
+                                            nn.ReLU())                                
+            self.comb_layer_8x = nn.Sequential(nn.Conv2d(bottleneck_ch+48, 256, kernel_size=3, stride=1, padding=1, bias=False),
+                                        nn.BatchNorm2d(256),
+                                        nn.ReLU())
+            self.comb_layer_4x = nn.Sequential(nn.Conv2d(256+48, 256, kernel_size=3, stride=1, padding=1, bias=False),
+                                        nn.BatchNorm2d(256),
+                                        nn.ReLU())
+            self.comb_layer_2x = nn.Sequential(nn.Conv2d(256+48, 256, kernel_size=3, stride=1, padding=1, bias=False),
+                                        nn.BatchNorm2d(256),
+                                        nn.ReLU())
+        self.features_to_predictions = torch.nn.Conv2d(256, num_out_ch, kernel_size=1, stride=1)
+
+    @staticmethod
+    def merge_bottleneck_skip_features(features_bottleneck_scale, features_skip_scale, skip_layer, comb_layer):
+        features = F.interpolate(
+                features_bottleneck_scale, size=features_skip_scale.shape[2:], mode='bilinear', align_corners=False)
+        x = skip_layer(features_skip_scale)
+        x = torch.cat((x, features), dim=1)
+        x = comb_layer(x)
+
+        return x
+
+
+    def forward(self, features_bottleneck, features_skip):
+        """
+        DeepLabV3+ style decoder
+        :param features_bottleneck: bottleneck features of scale > 4
+        :param features_skip_4x: features of encoder of scale == 4
+        :return: features with 256 channels and the final tensor of predictions
+        """
+        # TODO: Implement a proper decoder with skip connections instead of the following; keep returned
+        #       tensors in the same order and of the same shape.
+
+        feature_8x = self.merge_bottleneck_skip_features(features_bottleneck, features_skip[8], self.skip_layer_8x, self.comb_layer_8x)
+        feature_4x = self.merge_bottleneck_skip_features(feature_8x, features_skip[4], self.skip_layer_4x, self.comb_layer_4x)
+        features_2x = self.merge_bottleneck_skip_features(feature_4x, features_skip[2], self.skip_layer_2x, self.comb_layer_2x)
+        predictions_2x = self.features_to_predictions(features_2x)
+        return predictions_2x, features_2x
+
+        # features_8x = F.interpolate(
+        #         features_bottleneck, size=features_skip[8].shape[2:], mode='bilinear', align_corners=False)
+        # x = self.skip_layer_8x(features_skip[8])
+
+
+        # if self.upsample:
+        #     features_4x = F.interpolate(
+        #         features_bottleneck, size=features_skip_4x.shape[2:], mode='bilinear', align_corners=False
+        #     )
+        # else:
+        #     features_4x = features_bottleneck
+
+        # if self.skip_add:
+        #     x = self.skip_layer(features_skip_4x)
+        #     x = torch.cat((x, features_4x), dim=1)
+        #     x = self.last_conv(x)
+        #     predictions_4x = self.features_to_predictions(x)
+        #     return predictions_4x, x
+        # else:
+        #     predictions_4x = self.features_to_predictions(features_4x)
+        #     return predictions_4x, features_4x
+
 
 
 class ASPPpart(torch.nn.Sequential):
@@ -219,8 +297,8 @@ class SelfAttention(torch.nn.Module):
         super().__init__()
         self.conv = torch.nn.Conv2d(in_channels, out_channels, 3, padding=1, bias=False)
         self.attention = torch.nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, bias=False)
-        # with torch.no_grad():
-        #     self.attention.weight.copy_(torch.zeros_like(self.attention.weight))
+        with torch.no_grad():
+            self.attention.weight.copy_(torch.zeros_like(self.attention.weight))
 
     def forward(self, x):
         features = self.conv(x)

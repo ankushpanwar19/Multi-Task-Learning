@@ -9,6 +9,7 @@ from mtl.datasets.dataset_miniscapes import DatasetMiniscapes
 from mtl.models.model_deeplab_v3_plus import ModelDeepLabV3Plus
 from mtl.models.model_branched_arch import ModelBranchedArch
 from mtl.models.model_task_distillation import ModelTaskDistill
+from mtl.models.model_task_distill_all_connect import ModelTaskDistillAllConnect
 
 
 def resolve_dataset_class(name):
@@ -21,7 +22,8 @@ def resolve_model_class(name):
     return {
         'deeplabv3p': ModelDeepLabV3Plus,
         'brancharch': ModelBranchedArch,
-        'taskdistill': ModelTaskDistill
+        'taskdistill': ModelTaskDistill, 
+        'taskdistillallcon': ModelTaskDistillAllConnect
     }[name]
 
 

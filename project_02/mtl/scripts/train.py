@@ -9,8 +9,9 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.logging import TestTubeLogger
 
 # sys.path.append('/Users/ankushpanwar/Downloads/Courses/Sem 2/autonomous driving/dlad_project/project_02/')
-# sys.path.append('/scratch_net/neo_second/aabhinav/dlad_project/project_02/')
-sys.path.append('/Users/abhinavaggarwal/Downloads/dlad_project/project_02/')
+sys.path.append('/scratch_net/neo_second/aabhinav/dlad_project/project_02/')
+# sys.path.append('/Users/abhinavaggarwal/Downloads/dlad_project/project_02/')
+# sys.path.append('/Volumes/cvl/project_02/')
 from mtl.experiments.experiment_semseg_with_depth import ExperimentSemsegDepth
 from mtl.utils.rules import check_all_rules, pack_submission
 from mtl.utils.config import command_line_parser
