@@ -219,8 +219,8 @@ class SelfAttention(torch.nn.Module):
         super().__init__()
         self.conv = torch.nn.Conv2d(in_channels, out_channels, 3, padding=1, bias=False)
         self.attention = torch.nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, bias=False)
-        with torch.no_grad():
-            self.attention.weight.copy_(torch.zeros_like(self.attention.weight))
+        # with torch.no_grad():
+        #     self.attention.weight.copy_(torch.zeros_like(self.attention.weight))
 
     def forward(self, x):
         features = self.conv(x)

@@ -27,10 +27,11 @@ def command_line_parser():
     )
 
     parser.add_argument(
-        '--log_dir', type=expandpath, required=False, help='Place for artifacts and logs',default='/Users/abhinavaggarwal/Downloads/dlad_project/project_02/.log')
+        '--log_dir', type=expandpath, required=False, help='Place for artifacts and logs',default='/scratch_net/neo_second/aabhinav/dlad_project/project_02/.log')
         # default="/Users/abhinavaggarwal/Downloads/dlad_project/project_02/.log")
     parser.add_argument(
-        '--dataset_root', type=expandpath, required=False, help='Path to dataset',default='/Users/abhinavaggarwal/Downloads/dlad_project/project_02/data')
+        '--dataset_root', type=expandpath, required=False, help='Path to dataset',default='/scratch_net/neo_second/aabhinav/dlad_project/project_02/dataset/miniscapes')
+        # default='/Users/abhinavaggarwal/Downloads/dlad_project/project_02/data')
 
     parser.add_argument(
         '--prepare_submission', type=str2bool, default=False,
@@ -58,9 +59,9 @@ def command_line_parser():
         '--aug_geom_reflect', type=str2bool, default=False, help='Augmentation: Random horizontal flips')
 
     parser.add_argument(
-        '--optimizer', type=str, default='sgd', choices=['sgd', 'adam'], help='Type of optimizer')
+        '--optimizer', type=str, default='adam', choices=['sgd', 'adam'], help='Type of optimizer')
     parser.add_argument(
-        '--optimizer_lr', type=float, default=0.01, help='Learning rate at start of training')
+        '--optimizer_lr', type=float, default=0.0001, help='Learning rate at start of training')
     parser.add_argument(
         '--optimizer_momentum', type=float, default=0.9, help='Optimizer momentum')
     parser.add_argument(
@@ -75,7 +76,7 @@ def command_line_parser():
         '--dataset', type=str, default='miniscapes', choices=['miniscapes'], help='Dataset name')
 
     parser.add_argument(
-        '--model_name', type=str, default='deeplabv3p', choices=['deeplabv3p', 'brancharch', 'taskdistill'], help='CNN architecture')
+        '--model_name', type=str, default='taskdistill', choices=['deeplabv3p', 'brancharch', 'taskdistill'], help='CNN architecture')
     parser.add_argument(
         '--model_encoder_name', type=str, default='resnet34', choices=['resnet34'], help='CNN architecture encoder')
 
@@ -117,10 +118,12 @@ def command_line_parser():
         '--log_to_console', type=str2bool, default=True, help='Disables progress bar')
     
     parser.add_argument(
-        '--aspp_add', type=str2bool, default=False, help='Apply ASPP module')
+        '--aspp_add', type=str2bool, default=True, help='Apply ASPP module')
 
     parser.add_argument(
-        '--skip_add', type=str2bool, default=False, help='Add skip connection')
+        '--skip_add', type=str2bool, default=True, help='Add skip connection')
+    parser.add_argument(
+        '--add_se', type=str2bool, default=True, help='Add skip connection')
 
     parser.add_argument(
         '--message', type=str, default='', help='Add experiment description here')

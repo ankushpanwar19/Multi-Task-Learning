@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from mtl.models.model_parts import Encoder, get_encoder_channel_counts, ASPP, DecoderDeeplabV3p, SelfAttention
+from mtl.models.model_parts import Encoder, get_encoder_channel_counts, ASPP, DecoderDeeplabV3p, SelfAttention, SqueezeAndExcitation
 from mtl.datasets.definitions import *
 
 
@@ -13,6 +13,7 @@ class ModelTaskDistill(torch.nn.Module):
         ch_out_seg=outputs_desc[MOD_SEMSEG]
         ch_out_depth=outputs_desc[MOD_DEPTH]
         ch_attention = 48
+        self.add_se = cfg.add_se
 
         self.encoder = Encoder(
             cfg.model_encoder_name,
@@ -22,6 +23,9 @@ class ModelTaskDistill(torch.nn.Module):
         )
 
         ch_out_encoder_bottleneck, ch_out_encoder_4x = get_encoder_channel_counts(cfg.model_encoder_name)
+
+        self.se_seg = SqueezeAndExcitation(ch_out_encoder_bottleneck)
+        self.se_depth = SqueezeAndExcitation(ch_out_encoder_bottleneck)
 
         self.aspp_seg = ASPP(ch_out_encoder_bottleneck, 256,cfg)
         self.aspp_depth = ASPP(ch_out_encoder_bottleneck, 256,cfg)
@@ -48,9 +52,16 @@ class ModelTaskDistill(torch.nn.Module):
         features_lowest = features[lowest_scale]
 
         # features_tasks = self.aspp(features_lowest)
+        if self.add_se:
+            features_seg = self.se_seg(features_lowest)
+            features_depth = self.se_depth(features_lowest)
 
-        features_task_seg = self.aspp_seg(features_lowest)
-        features_task_depth = self.aspp_depth(features_lowest)
+            features_task_seg = self.aspp_seg(features_seg)
+            features_task_depth = self.aspp_depth(features_depth)
+
+        else:
+            features_task_seg = self.aspp_seg(features_lowest)
+            features_task_depth = self.aspp_depth(features_lowest)
         
         predictions_4x_seg1, features_seg = self.decoder_seg1(features_task_seg, features[4])
         predictions_4x_depth1, features_depth = self.decoder_depth1(features_task_depth, features[4])
