@@ -147,9 +147,13 @@ class ExperimentSemsegDepth(pl.LightningModule):
             'loss_train/semseg': loss_semseg,
             'loss_train/depth': loss_depth,
             'loss_train/total': loss_total,
-            'loss_train/semseg_coeff': loss_coeff_semseg,
-            'loss_train/depth_coeff': loss_coeff_depth,
+            # 'loss_train/semseg_coeff': loss_coeff_semseg,
+            # 'loss_train/depth_coeff': loss_coeff_depth,
         }
+
+        if self.dynamic_prioritization:
+            tensorboard_logs.update({'loss_train/semseg_coeff': loss_coeff_semseg})
+            tensorboard_logs.update({'loss_train/depth_coeff': loss_coeff_depth})
 
         if self.can_visualize():
             self.visualize(batch, y_hat_semseg, y_hat_depth, batch[MOD_ID], 'train/batch_crops')
