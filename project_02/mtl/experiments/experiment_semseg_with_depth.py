@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader
@@ -125,14 +126,15 @@ class ExperimentSemsegDepth(pl.LightningModule):
             metrics_depth = self.metrics_depth.get_metrics_summary()
             self.metrics_depth.reset()
 
-            metric_semseg = metrics_semseg['mean_iou']/100
-            metric_depth = metrics_depth['si_log_rmse']/100
+            metric_semseg = (metrics_semseg['mean_iou']/100).clamp(min=0.001, max=99.99).item()
+            metric_depth = (metrics_depth['si_log_rmse']/100).clamp(min=0.001, max=99.99).item()
 
             self.kappa_semseg = 0.9*metric_semseg + 0.1*self.kappa_semseg
             self.kappa_depth = 0.9*metric_depth + 0.1*self.kappa_depth
 
-            loss_coeff_semseg = -1*(1-self.kappa_semseg)*(self.kappa_semseg.log())
-            loss_coeff_depth = -1*(self.kappa_depth)*((1-self.kappa_depth).log())
+            loss_coeff_semseg = -1*(1-self.kappa_semseg)*np.log(self.kappa_semseg)
+            loss_coeff_depth = -1*(self.kappa_depth)*np.log(1-self.kappa_depth)
+
 
             assert loss_coeff_semseg>=0 and loss_coeff_depth >=0
 
@@ -145,6 +147,8 @@ class ExperimentSemsegDepth(pl.LightningModule):
             'loss_train/semseg': loss_semseg,
             'loss_train/depth': loss_depth,
             'loss_train/total': loss_total,
+            'loss_train/semseg_coeff': loss_coeff_semseg,
+            'loss_train/depth_coeff': loss_coeff_depth,
         }
 
         if self.can_visualize():
