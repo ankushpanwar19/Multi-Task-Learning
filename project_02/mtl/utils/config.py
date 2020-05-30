@@ -124,6 +124,8 @@ def command_line_parser():
         '--skip_add', type=str2bool, default=True, help='Add skip connection')
     parser.add_argument(
         '--add_se', type=str2bool, default=True, help='Add skip connection')
+    parser.add_argument(
+        '--dynamic_prioritization', type=str2bool, default=True, help='Add dynamic prioritization for both tasks')
 
     parser.add_argument(
         '--message', type=str, default='', help='Add experiment description here')
@@ -154,6 +156,8 @@ EXPERIMENT_INVARIANT_KEYS = (
     'ngrok_auth_token',
     'log_to_console',
     'aspp_add',
-    'skip_add'
+    'skip_add',
+    'add_se',
+    'dynamic_prioritization',
     'message'
 )

@@ -76,6 +76,11 @@ class ExperimentSemsegDepth(pl.LightningModule):
         self.metrics_semseg = MetricsSemseg(self.semseg_num_classes, self.semseg_ignore_label, self.semseg_class_names)
         self.metrics_depth = MetricsDepth()
 
+        self.kappa_semseg = self.cfg.loss_weight_semseg
+        self.kappa_depth = self.cfg.loss_weight_depth
+        
+        self.dynamic_prioritization = self.cfg.dynamic_prioritization
+
     def training_step(self, batch, batch_nb):
         rgb = batch[MOD_RGB]
         y_semseg_lbl = batch[MOD_SEMSEG].squeeze(1)
@@ -102,7 +107,39 @@ class ExperimentSemsegDepth(pl.LightningModule):
             loss_semseg = self.loss_semseg(y_hat_semseg, y_semseg_lbl)
             loss_depth = self.loss_depth(y_hat_depth, y_depth)
 
-        loss_total = self.cfg.loss_weight_semseg * loss_semseg + self.cfg.loss_weight_depth * loss_depth
+
+        if self.dynamic_prioritization:
+            y_depth_meters = y_depth * self.depth_meters_stddev + self.depth_meters_mean
+
+            y_hat_semseg_lbl = y_hat_semseg.argmax(dim=1)
+            y_hat_depth_meters = (
+                    y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
+            ).clamp(self.depth_meters_min, self.depth_meters_max)
+
+            self.metrics_semseg.update_batch(y_hat_semseg_lbl, y_semseg_lbl)
+            self.metrics_depth.update_batch(y_hat_depth_meters, y_depth_meters)
+
+            metrics_semseg = self.metrics_semseg.get_metrics_summary()
+            self.metrics_semseg.reset()
+
+            metrics_depth = self.metrics_depth.get_metrics_summary()
+            self.metrics_depth.reset()
+
+            metric_semseg = metrics_semseg['mean_iou']/100
+            metric_depth = metrics_depth['si_log_rmse']/100
+
+            self.kappa_semseg = 0.9*metric_semseg + 0.1*self.kappa_semseg
+            self.kappa_depth = 0.9*metric_depth + 0.1*self.kappa_depth
+
+            loss_coeff_semseg = -1*(1-self.kappa_semseg)*(self.kappa_semseg.log())
+            loss_coeff_depth = -1*(self.kappa_depth)*((1-self.kappa_depth).log())
+
+            assert loss_coeff_semseg>=0 and loss_coeff_depth >=0
+
+            loss_total = (loss_coeff_semseg * loss_semseg + loss_coeff_depth * loss_depth)/(loss_coeff_semseg + loss_coeff_depth)
+
+        else:
+            loss_total = self.cfg.loss_weight_semseg * loss_semseg + self.cfg.loss_weight_depth * loss_depth
 
         tensorboard_logs = {
             'loss_train/semseg': loss_semseg,
