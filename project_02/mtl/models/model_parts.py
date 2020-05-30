@@ -3,6 +3,8 @@ from torch import nn
 import torch.nn.functional as F
 import torchvision.models.resnet as resnet
 
+from mtl.datasets.definitions import RESNET34PATH
+from mtl.utils.pytorch_code import load_state_dict_from_url
 
 class BasicBlockWithDilation(torch.nn.Module):
     """Workaround for prohibited dilation in BasicBlock in 0.4.0"""
@@ -22,6 +24,7 @@ class BasicBlockWithDilation(torch.nn.Module):
         self.bn2 = norm_layer(planes)
         self.downsample = downsample
         self.stride = stride
+        self.se = SqueezeAndExcitation(planes)
 
     def forward(self, x):
         identity = x
@@ -30,6 +33,7 @@ class BasicBlockWithDilation(torch.nn.Module):
         out = self.relu(out)
         out = self.conv2(out)
         out = self.bn2(out)
+        out = self.se(out)
         if self.downsample is not None:
             identity = self.downsample(x)
         out += identity
@@ -67,8 +71,13 @@ class Encoder(torch.nn.Module):
             pretrained = encoder_kwargs.pop('pretrained', False)
             progress = encoder_kwargs.pop('progress', True)
             model = resnet._resnet(
-                name, BasicBlockWithDilation, _basic_block_layers[name], pretrained, progress, **encoder_kwargs
+                name, BasicBlockWithDilation, _basic_block_layers[name], False, progress, **encoder_kwargs
             )
+            if pretrained:
+                state_dict = load_state_dict_from_url(RESNET34PATH,
+                                                    progress=progress)
+                model.load_state_dict(state_dict, strict=False)
+
         replace_stride_with_dilation = encoder_kwargs.get('replace_stride_with_dilation', (False, False, False))
         assert len(replace_stride_with_dilation) == 3
         if replace_stride_with_dilation[0]:

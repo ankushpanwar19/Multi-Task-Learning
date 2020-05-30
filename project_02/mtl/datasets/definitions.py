@@ -13,3 +13,4 @@ INTERP = {
     MOD_SEMSEG: 'nearest',
     MOD_DEPTH: 'nearest',
 }
+RESNET34PATH = 'https://download.pytorch.org/models/resnet34-333f7ec4.pth'
