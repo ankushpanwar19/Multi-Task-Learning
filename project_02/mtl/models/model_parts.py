@@ -174,6 +174,29 @@ class DecoderDeeplabV3p(torch.nn.Module):
             predictions_4x = self.features_to_predictions(features_4x)
             return predictions_4x, features_4x
 
+class DecoderDeeplabV3pSelfAtten(torch.nn.Module):
+    def __init__(self, features_init_ch, num_out_ch):
+        super(DecoderDeeplabV3p, self).__init__()
+
+        # TODO: Implement a proper decoder with skip connections instead of the following
+
+        ## 48 from paper code
+       
+        self.features_to_predictions = torch.nn.Conv2d(features_init_ch, num_out_ch, kernel_size=1, stride=1)
+
+    def forward(self, features_init, features_self_atten):
+        """
+        DeepLabV3+ style decoder
+        :param features_bottleneck: bottleneck features of scale > 4
+        :param features_skip_4x: features of encoder of scale == 4
+        :return: features with 256 channels and the final tensor of predictions
+        """
+        # TODO: Implement a proper decoder with skip connections instead of the following; keep returned
+        features_out=features_init+features_self_atten
+        x=self.features_to_predictions(features_out)
+
+        return x
+    
 
 class DecoderDeeplabV3pAllConnect(torch.nn.Module):
     def __init__(self, bottleneck_ch, skip_2x_ch, skip_4x_ch, skip_8x_ch, num_out_ch, cfg, upsample=True):
@@ -306,8 +329,8 @@ class SelfAttention(torch.nn.Module):
         super().__init__()
         self.conv = torch.nn.Conv2d(in_channels, out_channels, 3, padding=1, bias=False)
         self.attention = torch.nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, bias=False)
-        with torch.no_grad():
-            self.attention.weight.copy_(torch.zeros_like(self.attention.weight))
+        # with torch.no_grad():
+        #     self.attention.weight.copy_(torch.zeros_like(self.attention.weight))
 
     def forward(self, x):
         features = self.conv(x)

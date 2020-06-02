@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 from mtl.models.model_parts import Encoder, get_encoder_channel_counts, ASPP, DecoderDeeplabV3p,\
-    SelfAttention, SqueezeAndExcitation, DecoderDeeplabV3pAllConnect
+    SelfAttention, SqueezeAndExcitation, DecoderDeeplabV3pAllConnect,DecoderDeeplabV3pSelfAtten
 from mtl.datasets.definitions import *
 
 
@@ -13,7 +13,7 @@ class ModelTaskDistillAllConnect(torch.nn.Module):
         ch_out = sum(outputs_desc.values())
         ch_out_seg=outputs_desc[MOD_SEMSEG]
         ch_out_depth=outputs_desc[MOD_DEPTH]
-        ch_attention = 48
+        ch_attention = 256
         self.add_se = cfg.add_se
 
         self.encoder = Encoder(
@@ -37,8 +37,10 @@ class ModelTaskDistillAllConnect(torch.nn.Module):
         self.self_attention_seg = SelfAttention(256, ch_attention)
         self.self_attention_depth = SelfAttention(256, ch_attention)
 
-        self.decoder_seg2 = DecoderDeeplabV3p(256, ch_attention, ch_out_seg, cfg, upsample=False)
-        self.decoder_depth2 = DecoderDeeplabV3p(256, ch_attention, ch_out_depth, cfg, upsample=False)
+        # self.decoder_seg2 = DecoderDeeplabV3pS(256, ch_attention, ch_out_seg, cfg, upsample=False)
+        # self.decoder_depth2 = DecoderDeeplabV3p(256, ch_attention, ch_out_depth, cfg, upsample=False)
+        self.decoder_seg2 = DecoderDeeplabV3pSelfAtten(ch_attention)
+        self.decoder_depth2 = DecoderDeeplabV3pSelfAtten(ch_attention)
 
     def forward(self, x):
         input_resolution = (x.shape[2], x.shape[3])
