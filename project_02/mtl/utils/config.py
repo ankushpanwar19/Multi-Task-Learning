@@ -126,6 +126,8 @@ def command_line_parser():
         '--add_se', type=str2bool, default=True, help='Add skip connection')
     parser.add_argument(
         '--dynamic_prioritization', type=str2bool, default=True, help='Add dynamic prioritization for both tasks')
+    parser.add_argument(
+        '--log_transformation', type=str2bool, default=False, help='Add log transformation to depth values for normalization')
 
     parser.add_argument(
         '--message', type=str, default='', help='Add experiment description here')

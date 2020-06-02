@@ -206,6 +206,19 @@ class ConvertToTensorsSimple:
             sample[modality] = data
         return sample
 
+class ConvertToLog:
+    def __init__(self, modality):
+        self.modality = modality
+
+    def __call__(self, sample):
+        assert self.modality in sample
+        data = sample[self.modality]
+        data = data.log()
+
+        sample[self.modality] = data
+
+        return sample
+
 
 class ZeroMeanUnitVarianceTensor:
     def __init__(self, modality, mean, stddev):
@@ -236,6 +249,7 @@ def get_transforms(
     rgb_stddev=None,
     depth_meters_mean=None,
     depth_meters_stddev=None,
+    convert_log=False
 ):
     return Compose([
         CropForPassableSidesPIL(crop_for_passable) if crop_for_passable > 0 else Identity(),
@@ -249,6 +263,7 @@ def get_transforms(
             semseg_ignore_label=semseg_ignore_label,
         ) if crop_random > 0 else Identity(),
         ConvertToTensorsSimple(),
+        ConvertToLog(MOD_DEPTH) if convert_log else Identity(),
         ZeroMeanUnitVarianceTensor(MOD_RGB, rgb_mean, rgb_stddev) if rgb_mean is not None else Identity(),
         ZeroMeanUnitVarianceTensor(MOD_DEPTH, depth_meters_mean, depth_meters_stddev) if depth_meters_mean is not None else Identity(),
     ])

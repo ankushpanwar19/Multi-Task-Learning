@@ -17,6 +17,7 @@ class ExperimentSemsegDepth(pl.LightningModule):
     def __init__(self, cfg):
         super(ExperimentSemsegDepth, self).__init__()
         self.cfg = cfg
+        self.log_transformation = cfg.log_transformation
 
         dataset_class = resolve_dataset_class(cfg.dataset)
         self.datasets = {
@@ -37,6 +38,13 @@ class ExperimentSemsegDepth(pl.LightningModule):
         self.depth_meters_stddev = self.datasets[SPLIT_TRAIN].depth_meters_stddev
         self.depth_meters_min = self.datasets[SPLIT_TRAIN].depth_meters_min
         self.depth_meters_max = self.datasets[SPLIT_TRAIN].depth_meters_max
+
+        if self.log_transformation:
+            self.depth_meters_mean = 2.89
+            self.depth_meters_stddev = 0.866
+            self.depth_meters_min = 1.39
+            self.depth_meters_max = 5.70
+
 
         outputs_descriptor = {
             MOD_SEMSEG: self.semseg_num_classes,
@@ -59,6 +67,7 @@ class ExperimentSemsegDepth(pl.LightningModule):
             rgb_stddev=self.rgb_stddev,
             depth_meters_mean=self.depth_meters_mean,
             depth_meters_stddev=self.depth_meters_stddev,
+            convert_log=self.log_transformation
         ))
         self.transforms_val_test = get_transforms(
             semseg_ignore_label=self.semseg_ignore_label,
@@ -67,6 +76,7 @@ class ExperimentSemsegDepth(pl.LightningModule):
             rgb_stddev=self.rgb_stddev,
             depth_meters_mean=self.depth_meters_mean,
             depth_meters_stddev=self.depth_meters_stddev,
+            convert_log=self.log_transformation
         )
         self.datasets[SPLIT_VALID].set_transforms(self.transforms_val_test)
         self.datasets[SPLIT_TEST].set_transforms(self.transforms_val_test)
@@ -113,9 +123,14 @@ class ExperimentSemsegDepth(pl.LightningModule):
             y_depth_meters = y_depth * self.depth_meters_stddev + self.depth_meters_mean
 
             y_hat_semseg_lbl = y_hat_semseg.argmax(dim=1)
-            y_hat_depth_meters = (
-                    y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
-            ).clamp(self.depth_meters_min, self.depth_meters_max)
+            if self.log_transformation:
+                y_hat_depth_meters = torch.exp((
+                        y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
+                ).clamp(self.depth_meters_min, self.depth_meters_max))
+            else:
+                y_hat_depth_meters = (
+                        y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
+                ).clamp(self.depth_meters_min, self.depth_meters_max)
 
             self.metrics_semseg.update_batch(y_hat_semseg_lbl, y_semseg_lbl)
             self.metrics_depth.update_batch(y_hat_depth_meters, y_depth_meters)
@@ -182,9 +197,14 @@ class ExperimentSemsegDepth(pl.LightningModule):
             y_hat_depth = y_hat_depth[-1]
 
         y_hat_semseg_lbl = y_hat_semseg.argmax(dim=1)
-        y_hat_depth_meters = (
-                y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
-        ).clamp(self.depth_meters_min, self.depth_meters_max)
+        if self.log_transformation:
+            y_hat_depth_meters = torch.exp((
+                    y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
+            ).clamp(self.depth_meters_min, self.depth_meters_max))
+        else:
+            y_hat_depth_meters = (
+                    y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
+            ).clamp(self.depth_meters_min, self.depth_meters_max)
 
         return y_hat_semseg, y_hat_semseg_lbl, y_hat_depth, y_hat_depth_meters
 
@@ -198,7 +218,10 @@ class ExperimentSemsegDepth(pl.LightningModule):
             y_semseg_lbl = y_semseg_lbl.cuda()
             y_depth = y_depth.cuda()
 
-        y_depth_meters = y_depth * self.depth_meters_stddev + self.depth_meters_mean
+        if self.log_transformation:
+            y_depth_meters = torch.exp(y_depth * self.depth_meters_stddev + self.depth_meters_mean)
+        else:
+            y_depth_meters = y_depth * self.depth_meters_stddev + self.depth_meters_mean
 
         loss_val_semseg = self.loss_semseg(y_hat_semseg, y_semseg_lbl)
         loss_val_depth = self.loss_depth(y_hat_depth, y_depth)
@@ -336,8 +359,12 @@ class ExperimentSemsegDepth(pl.LightningModule):
         # visualize depth histograms to see how far the distribution of values is away from gaussian
         depth_normalized = batch[MOD_DEPTH]
         depth_normalized = depth_normalized[depth_normalized == depth_normalized]
-        depth_meters = depth_normalized * self.depth_meters_stddev + self.depth_meters_mean
-        y_hat_depth_meters = y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
+        if self.log_transformation:
+            depth_meters = torch.exp(depth_normalized * self.depth_meters_stddev + self.depth_meters_mean)
+            y_hat_depth_meters = torch.exp(y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean)
+        else:
+            depth_meters = depth_normalized * self.depth_meters_stddev + self.depth_meters_mean
+            y_hat_depth_meters = y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
         self.logger.experiment.add_histogram('GT_Depth_Normalized', depth_normalized, self.trainer.global_step, bins=64)
         self.logger.experiment.add_histogram('GT_Depth_Meters', depth_meters, self.trainer.global_step, bins=64)
         self.logger.experiment.add_histogram('Pred_Depth_Normalized', y_hat_depth, self.trainer.global_step, bins=64)
