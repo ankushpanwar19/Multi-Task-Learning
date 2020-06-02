@@ -10,6 +10,7 @@ from mtl.models.model_deeplab_v3_plus import ModelDeepLabV3Plus
 from mtl.models.model_branched_arch import ModelBranchedArch
 from mtl.models.model_task_distillation import ModelTaskDistill
 from mtl.models.model_task_distill_all_connect import ModelTaskDistillAllConnect
+from mtl.models.model_task_distill_all_attend import ModelTaskDistillAllConnectAllAttend
 
 
 def resolve_dataset_class(name):
@@ -23,7 +24,8 @@ def resolve_model_class(name):
         'deeplabv3p': ModelDeepLabV3Plus,
         'brancharch': ModelBranchedArch,
         'taskdistill': ModelTaskDistill, 
-        'taskdistillallcon': ModelTaskDistillAllConnect
+        'taskdistillallcon': ModelTaskDistillAllConnect,
+        'taskdistillallconallattend': ModelTaskDistillAllConnectAllAttend
     }[name]
 
 
