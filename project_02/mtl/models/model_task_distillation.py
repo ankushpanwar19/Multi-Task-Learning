@@ -1,7 +1,8 @@
 import torch
 import torch.nn.functional as F
 
-from mtl.models.model_parts import Encoder, get_encoder_channel_counts, ASPP, DecoderDeeplabV3p, SelfAttention, SqueezeAndExcitation
+from mtl.models.model_parts import Encoder, get_encoder_channel_counts, ASPP, DecoderDeeplabV3p, SelfAttention, \
+    SqueezeAndExcitation, DecoderDeeplabV3pSelfAtten
 from mtl.datasets.definitions import *
 
 
@@ -12,7 +13,7 @@ class ModelTaskDistill(torch.nn.Module):
         ch_out = sum(outputs_desc.values())
         ch_out_seg=outputs_desc[MOD_SEMSEG]
         ch_out_depth=outputs_desc[MOD_DEPTH]
-        ch_attention = 48
+        ch_attention = 256
         self.add_se = cfg.add_se
 
         self.encoder = Encoder(
@@ -36,8 +37,10 @@ class ModelTaskDistill(torch.nn.Module):
         self.self_attention_seg = SelfAttention(256, ch_attention)
         self.self_attention_depth = SelfAttention(256, ch_attention)
 
-        self.decoder_seg2 = DecoderDeeplabV3p(256, ch_attention, ch_out_seg, cfg, upsample=False)
-        self.decoder_depth2 = DecoderDeeplabV3p(256, ch_attention, ch_out_depth, cfg, upsample=False)
+        # self.decoder_seg2 = DecoderDeeplabV3p(256, ch_attention, ch_out_seg, cfg, upsample=False)
+        # self.decoder_depth2 = DecoderDeeplabV3p(256, ch_attention, ch_out_depth, cfg, upsample=False)
+        self.decoder_seg2 = DecoderDeeplabV3pSelfAtten(ch_attention, ch_out_seg)
+        self.decoder_depth2 = DecoderDeeplabV3pSelfAtten(ch_attention, ch_out_depth)
 
     def forward(self, x):
         input_resolution = (x.shape[2], x.shape[3])
@@ -73,8 +76,8 @@ class ModelTaskDistill(torch.nn.Module):
         attention_seg = self.self_attention_seg(features_seg)
         attention_depth = self.self_attention_depth(features_depth)
 
-        predictions_4x_seg2, _ = self.decoder_seg2(features_seg, attention_depth)
-        predictions_4x_depth2, _ = self.decoder_depth2(features_depth, attention_seg)
+        predictions_4x_seg2 = self.decoder_seg2(features_seg, attention_depth)
+        predictions_4x_depth2 = self.decoder_depth2(features_depth, attention_seg)
 
         predictions_1x_seg2 = F.interpolate(predictions_4x_seg2, size=input_resolution, mode='bilinear', align_corners=False)
         predictions_1x_depth2 = F.interpolate(predictions_4x_depth2, size=input_resolution, mode='bilinear', align_corners=False)

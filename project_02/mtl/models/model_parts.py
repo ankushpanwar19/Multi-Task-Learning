@@ -176,7 +176,7 @@ class DecoderDeeplabV3p(torch.nn.Module):
 
 class DecoderDeeplabV3pSelfAtten(torch.nn.Module):
     def __init__(self, features_init_ch, num_out_ch):
-        super(DecoderDeeplabV3p, self).__init__()
+        super(DecoderDeeplabV3pSelfAtten, self).__init__()
 
         # TODO: Implement a proper decoder with skip connections instead of the following
 

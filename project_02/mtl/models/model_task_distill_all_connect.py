@@ -39,8 +39,8 @@ class ModelTaskDistillAllConnect(torch.nn.Module):
 
         # self.decoder_seg2 = DecoderDeeplabV3pS(256, ch_attention, ch_out_seg, cfg, upsample=False)
         # self.decoder_depth2 = DecoderDeeplabV3p(256, ch_attention, ch_out_depth, cfg, upsample=False)
-        self.decoder_seg2 = DecoderDeeplabV3pSelfAtten(ch_attention)
-        self.decoder_depth2 = DecoderDeeplabV3pSelfAtten(ch_attention)
+        self.decoder_seg2 = DecoderDeeplabV3pSelfAtten(ch_attention, ch_out_seg)
+        self.decoder_depth2 = DecoderDeeplabV3pSelfAtten(ch_attention, ch_out_depth)
 
     def forward(self, x):
         input_resolution = (x.shape[2], x.shape[3])
@@ -76,8 +76,8 @@ class ModelTaskDistillAllConnect(torch.nn.Module):
         attention_seg = self.self_attention_seg(features_seg)
         attention_depth = self.self_attention_depth(features_depth)
 
-        predictions_2x_seg2, _ = self.decoder_seg2(features_seg, attention_depth)
-        predictions_2x_depth2, _ = self.decoder_depth2(features_depth, attention_seg)
+        predictions_2x_seg2 = self.decoder_seg2(features_seg, attention_depth)
+        predictions_2x_depth2 = self.decoder_depth2(features_depth, attention_seg)
 
         predictions_1x_seg2 = F.interpolate(predictions_2x_seg2, size=input_resolution, mode='bilinear', align_corners=False)
         predictions_1x_depth2 = F.interpolate(predictions_2x_depth2, size=input_resolution, mode='bilinear', align_corners=False)
