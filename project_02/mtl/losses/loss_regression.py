@@ -2,8 +2,12 @@ import torch
 
 
 class LossRegression(torch.nn.Module):
-    @staticmethod
-    def forward_one_image(y_hat, y):
+    def __init__(self, use_l1_loss):
+        super().__init__()
+        self.use_l1_loss = use_l1_loss
+
+    # @staticmethod
+    def forward_one_image(self, y_hat, y):
         valid_mask = y == y  # filter out NaN values
         y_hat = y_hat[valid_mask]
         y = y[valid_mask]
@@ -11,10 +15,12 @@ class LossRegression(torch.nn.Module):
         if y.numel() == 0:
             return None, False
 
+        if self.use_l1_loss:
         # L1 penalty
-        #loss = (y_hat - y).abs().mean()
+            loss = (y_hat - y).abs().mean()
+        else:
         # L2 penalty
-        loss = (y_hat - y).pow(2).mean()
+            loss = (y_hat - y).pow(2).mean()
 
         return loss, True
 

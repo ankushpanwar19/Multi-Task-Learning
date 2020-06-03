@@ -82,7 +82,8 @@ class ExperimentSemsegDepth(pl.LightningModule):
         self.datasets[SPLIT_TEST].set_transforms(self.transforms_val_test)
 
         self.loss_semseg = torch.nn.CrossEntropyLoss(ignore_index=self.semseg_ignore_label)
-        self.loss_depth = LossRegression()
+        self.loss_depth = LossRegression(cfg.use_l1_loss_depth)
+        # self.loss_depth = LossRegression()
 
         self.metrics_semseg = MetricsSemseg(self.semseg_num_classes, self.semseg_ignore_label, self.semseg_class_names)
         self.metrics_depth = MetricsDepth()
