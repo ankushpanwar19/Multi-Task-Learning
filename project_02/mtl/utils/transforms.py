@@ -211,7 +211,9 @@ class ConvertToLog:
         self.modality = modality
 
     def __call__(self, sample):
-        assert self.modality in sample
+        # assert self.modality in sample
+        if self.modality not in sample:
+            return sample
         data = sample[self.modality]
         data = data.log()
 

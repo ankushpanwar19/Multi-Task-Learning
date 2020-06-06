@@ -120,7 +120,7 @@ class ExperimentSemsegDepth(pl.LightningModule):
             loss_depth = self.loss_depth(y_hat_depth, y_depth)
 
 
-        if self.dynamic_prioritization:
+        if self.dynamic_prioritization and self.current_epoch>5:
             y_depth_meters = y_depth * self.depth_meters_stddev + self.depth_meters_mean
 
             y_hat_semseg_lbl = y_hat_semseg.argmax(dim=1)
@@ -167,7 +167,7 @@ class ExperimentSemsegDepth(pl.LightningModule):
             # 'loss_train/depth_coeff': loss_coeff_depth,
         }
 
-        if self.dynamic_prioritization:
+        if self.dynamic_prioritization and self.current_epoch>5:
             tensorboard_logs.update({'loss_train/semseg_coeff': loss_coeff_semseg})
             tensorboard_logs.update({'loss_train/depth_coeff': loss_coeff_depth})
 
