@@ -45,7 +45,7 @@ def command_line_parser():
         '--batch_size_validation', type=int, default=8, help='Number of samples in a batch for validation')
 
     parser.add_argument(
-        '--aug_input_crop_size', type=int, default=256, help='Training crop size')
+        '--aug_input_crop_size', type=tuple, default=(256,256), help='Training crop size')
     parser.add_argument(
         '--aug_geom_scale_min', type=float, default=1.0, help='Augmentation: lower bound of scale')
     parser.add_argument(
