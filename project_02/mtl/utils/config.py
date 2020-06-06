@@ -130,6 +130,8 @@ def command_line_parser():
         '--log_transformation', type=str2bool, default=False, help='Add log transformation to depth values for normalization')
     parser.add_argument(
         '--use_l1_loss_depth', type=str2bool, default=False, help='Whether to use l1 loss or l2 loss for depth estimation')
+    parser.add_argument(
+        '--use_weighted_loss_seg', type=str2bool, default=False, help='Whether to use class weighted loss for segmentation')
 
     parser.add_argument(
         '--message', type=str, default='', help='Add experiment description here')

@@ -133,6 +133,15 @@ class DatasetMiniscapes(torch.utils.data.Dataset):
     def semseg_class_names(self):
         return [clsdesc.name for clsdesc in Cityscapes.classes if not clsdesc.ignore_in_eval]
 
+    @property
+    def semseg_class_weights(self):
+        weights = np.array([0.002, 0.009, 0.003, 0.052, 0.052, 0.029, 0.160, 0.111, 0.004, \
+                            0.068, 0.007, 0.019, 0.075, 0.011, 0.076, 0.055, 0.051, 0.099, 0.117], dtype=np.float32)
+        weights = torch.from_numpy(weights)
+        if torch.cuda.is_available():
+            weights = weights.cuda()
+        return  weights
+
     def depth_meters_float32_to_disparity_uint8(self, x, out_of_range_policy):
         assert out_of_range_policy in ('invalidate', 'clamp_to_range')
         x = np.array(x).astype(np.float32)
