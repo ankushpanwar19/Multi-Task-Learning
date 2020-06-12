@@ -52,6 +52,7 @@ def resolve_lr_scheduler(cfg, optimizer):
         return LambdaLR(
             optimizer,
             lambda ep: max(1e-6, (1 - ep / (cfg.num_epochs-1)) ** cfg.lr_scheduler_power)
+            # lambda ep: max(0.03,0)
         )
     else:
         raise NotImplementedError

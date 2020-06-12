@@ -44,6 +44,8 @@ def command_line_parser():
     parser.add_argument(
         '--batch_size_validation', type=int, default=8, help='Number of samples in a batch for validation')
 
+    # parser.add_argument(
+    #     '--aug_input_crop_size', type=tuple, default=(384,224), help='Training crop size')
     parser.add_argument(
         '--aug_input_crop_size', type=tuple, default=(256,256), help='Training crop size')
     parser.add_argument(

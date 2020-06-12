@@ -125,41 +125,43 @@ class ExperimentSemsegDepth(pl.LightningModule):
             loss_depth = self.loss_depth(y_hat_depth, y_depth)
 
 
-        if self.dynamic_prioritization and self.current_epoch>5:
-            y_depth_meters = y_depth * self.depth_meters_stddev + self.depth_meters_mean
+        if self.dynamic_prioritization and self.current_epoch>0:
+        # if self.dynamic_prioritization and self.current_epoch>5:
+            # y_depth_meters = y_depth * self.depth_meters_stddev + self.depth_meters_mean
 
-            y_hat_semseg_lbl = y_hat_semseg.argmax(dim=1)
-            if self.log_transformation:
-                y_hat_depth_meters = torch.exp((
-                        y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
-                ).clamp(self.depth_meters_min, self.depth_meters_max))
-            else:
-                y_hat_depth_meters = (
-                        y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
-                ).clamp(self.depth_meters_min, self.depth_meters_max)
+            # y_hat_semseg_lbl = y_hat_semseg.argmax(dim=1)
+            # if self.log_transformation:
+            #     y_hat_depth_meters = torch.exp((
+            #             y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
+            #     ).clamp(self.depth_meters_min, self.depth_meters_max))
+            # else:
+            #     y_hat_depth_meters = (
+            #             y_hat_depth * self.depth_meters_stddev + self.depth_meters_mean
+            #     ).clamp(self.depth_meters_min, self.depth_meters_max)
 
-            self.metrics_semseg.update_batch(y_hat_semseg_lbl, y_semseg_lbl)
-            self.metrics_depth.update_batch(y_hat_depth_meters, y_depth_meters)
+            # self.metrics_semseg.update_batch(y_hat_semseg_lbl, y_semseg_lbl)
+            # self.metrics_depth.update_batch(y_hat_depth_meters, y_depth_meters)
 
-            metrics_semseg = self.metrics_semseg.get_metrics_summary()
-            self.metrics_semseg.reset()
+            # metrics_semseg = self.metrics_semseg.get_metrics_summary()
+            # self.metrics_semseg.reset()
 
-            metrics_depth = self.metrics_depth.get_metrics_summary()
-            self.metrics_depth.reset()
+            # metrics_depth = self.metrics_depth.get_metrics_summary()
+            # self.metrics_depth.reset()
 
-            metric_semseg = (metrics_semseg['mean_iou']/100).clamp(min=0.001, max=99.99).item()
-            metric_depth = (metrics_depth['si_log_rmse']/100).clamp(min=0.001, max=99.99).item()
+            # metric_semseg = (metrics_semseg['mean_iou']/100).clamp(min=0.001, max=99.99).item()
+            # metric_depth = (metrics_depth['si_log_rmse']/100).clamp(min=0.001, max=99.99).item()
 
-            self.kappa_semseg = 0.9*metric_semseg + 0.1*self.kappa_semseg
-            self.kappa_depth = 0.9*metric_depth + 0.1*self.kappa_depth
+            # self.kappa_semseg = 0.9*metric_semseg + 0.1*self.kappa_semseg
+            # self.kappa_depth = 0.9*metric_depth + 0.1*self.kappa_depth
 
-            loss_coeff_semseg = -1*(1-self.kappa_semseg)*np.log(self.kappa_semseg)
-            loss_coeff_depth = -1*(self.kappa_depth)*np.log(1-self.kappa_depth)
+            # loss_coeff_semseg = -1*(1-self.kappa_semseg)*np.log(self.kappa_semseg)
+            # loss_coeff_depth = -1*(self.kappa_depth)*np.log(1-self.kappa_depth)
 
 
-            assert loss_coeff_semseg>=0 and loss_coeff_depth >=0
+            # assert loss_coeff_semseg>=0 and loss_coeff_depth >=0
 
-            loss_total = (loss_coeff_semseg * loss_semseg + loss_coeff_depth * loss_depth)/(loss_coeff_semseg + loss_coeff_depth)
+            # loss_total = (loss_coeff_semseg * loss_semseg + loss_coeff_depth * loss_depth)/(loss_coeff_semseg + loss_coeff_depth)
+            loss_total = (self.kappa_semseg * loss_semseg + self.kappa_depth * loss_depth)/(self.kappa_semseg + self.kappa_depth)
 
         else:
             loss_total = self.cfg.loss_weight_semseg * loss_semseg + self.cfg.loss_weight_depth * loss_depth
@@ -172,9 +174,10 @@ class ExperimentSemsegDepth(pl.LightningModule):
             # 'loss_train/depth_coeff': loss_coeff_depth,
         }
 
-        if self.dynamic_prioritization and self.current_epoch>5:
-            tensorboard_logs.update({'loss_train/semseg_coeff': loss_coeff_semseg})
-            tensorboard_logs.update({'loss_train/depth_coeff': loss_coeff_depth})
+        # if self.dynamic_prioritization and self.current_epoch>5:
+        if self.dynamic_prioritization and self.current_epoch>0:
+            tensorboard_logs.update({'loss_train/semseg_coeff': self.kappa_semseg})
+            tensorboard_logs.update({'loss_train/depth_coeff': self.kappa_depth})
 
         if self.can_visualize():
             self.visualize(batch, y_hat_semseg, y_hat_depth, batch[MOD_ID], 'train/batch_crops')
@@ -257,6 +260,11 @@ class ExperimentSemsegDepth(pl.LightningModule):
 
         metric_semseg = metrics_semseg['mean_iou']
         metric_depth = metrics_depth['si_log_rmse']
+
+        # self.kappa_semseg = (100-metric_semseg).clamp(min=0).item()
+        # self.kappa_depth = (metric_depth).clamp(min=0).item()
+        self.kappa_semseg = (metric_semseg-50).clamp(min=0).item()
+        self.kappa_depth = (50-metric_depth).clamp(min=0).item()
 
         metric_total = metric_semseg - metric_depth
         metric_grader = (metric_semseg - 50).clamp(min=0) + (50 - metric_depth).clamp(min=0)
