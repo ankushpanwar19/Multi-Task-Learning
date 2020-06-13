@@ -21,7 +21,7 @@ class ModelTaskDistillAllConnectAllAttend(torch.nn.Module):
             cfg.model_encoder_name,
             pretrained=True,
             zero_init_residual=True,
-            replace_stride_with_dilation=(False, False, True),
+            replace_stride_with_dilation=(False, True, True),
         )
 
         ch_out_encoder_bottleneck, ch_out_encoder_4x = get_encoder_channel_counts(cfg.model_encoder_name)
@@ -29,8 +29,10 @@ class ModelTaskDistillAllConnectAllAttend(torch.nn.Module):
         self.aspp_seg = ASPP(ch_out_encoder_bottleneck, 256,cfg)
         self.aspp_depth = ASPP(ch_out_encoder_bottleneck, 256,cfg)
 
-        self.decoder_seg1 = DecoderDeeplabV3pAllConnectAllAttend(256, 64, ch_out_encoder_4x, 128, ch_out_seg)
-        self.decoder_depth1 = DecoderDeeplabV3pAllConnectAllAttend(256, 64, ch_out_encoder_4x, 128, ch_out_depth)
+        # self.decoder_seg1 = DecoderDeeplabV3pAllConnectAllAttend(256, 64, ch_out_encoder_4x, 128, ch_out_seg)
+        # self.decoder_depth1 = DecoderDeeplabV3pAllConnectAllAttend(256, 64, ch_out_encoder_4x, 128, ch_out_depth)
+        self.decoder_seg1 = DecoderDeeplabV3pAllConnectAllAttend(256, 64, ch_out_encoder_4x, 512, ch_out_seg)
+        self.decoder_depth1 = DecoderDeeplabV3pAllConnectAllAttend(256, 64, ch_out_encoder_4x, 512, ch_out_depth)
 
         self.attend_decode_seg = SelfAttentionDecodeAllScale(256, 256, ch_out_seg)
         self.attend_decode_depth = SelfAttentionDecodeAllScale(256, 256, ch_out_depth)
