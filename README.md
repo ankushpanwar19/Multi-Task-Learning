@@ -1,4 +1,4 @@
-# DLAD Exercise 2 
+# Multi-Task Learning (Semantic Segmentation and Depth estimation)
 
 Multitask Semantic Segmentation and Monocular Depth prediction for Autonomous Driving
 
